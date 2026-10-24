@@ -1,6 +1,6 @@
 {
   "name": "goat-bot-v2",
-  "version": "1.5.35",
+  versionn": "1.5.35",
   "description": "A simple Bot chat messenger using personal account. Made by NTKhang.",
   "main": "index.js",
   "engines": {
@@ -18,7 +18,7 @@
     "axios": "^1.4.0",
     "ws": "^8.13.0",
     "bcrypt": "^5.0.1",
-  
+    "canvas": "^2.11.2",  
     "cheerio": "^1.0.0-rc.12",
     "child_process": "^1.0.2",
     "connect-flash": "^0.1.1",
