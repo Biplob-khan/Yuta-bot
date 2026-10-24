@@ -1,0 +1,182 @@
+<%~ includeFile("partials/header.eta", {
+	user: user
+}); %>
+<%~ includeFile("partials/message.eta"); %>
+<%~ includeFile("partials/title.eta", {
+	icon: "fas fa-cog",
+	title: "Dashboard"
+}); %>
+<%
+	const { threadID } = threadData; 
+%>
+
+<form id="setData" class="container">
+  <br>
+	<div class="bg-300 rounded-5 py-4">
+		<h5 class="text-center">Box Name: <%= threadData.threadName %></h5>
+		<p class="mt-2 mb-0 text-center">Box ID: <%= threadData.threadID %></p>
+	</div>
+
+	<hr>
+
+	<div class="bg-300 rounded-5 py-4 px-4 mt-2" role="button" onclick="window.location.href='/dashboard/<%= threadID %>/welcome'">
+		<div class="row justify-content-between">
+			<div class="col-auto">
+				<h4>👋 Welcome</h4>
+			</div>
+			<div class="col-auto">
+				<label class="switch">
+					<div class="form-check form-switch">
+						<input class="form-check-input" id="sw-welcome" type="checkbox" <%= threadData.settings.sendWelcomeMessage ? 'checked' : '' %>/>
+						<span class="slider round"></span>
+					</div>
+				</label>
+			</div>
+		</div>
+		<p class="text-700 lead fs-1 ms-2 mb-0">Send a welcome message to new members!</p>
+	</div>
+
+	<div class="bg-300 rounded-5 py-4 px-4 mt-2" role="button" onclick="window.location.href='/dashboard/<%= threadID %>/leave'">
+		<div class="row justify-content-between">
+			<div class="col-auto">
+				<h4>🤧 Leave</h4>
+			</div>
+			<div class="col-auto">
+				<label class="switch">
+					<div class="form-check form-switch">
+						<input class="form-check-input" id="sw-leave" type="checkbox" <%= threadData.settings.sendLeaveMessage ? 'checked' : '' %>/>
+						<span class="slider round"></span>
+					</div>
+				</label>
+			</div>
+		</div>
+		<p class="text-700 lead fs-1 ms-2 mb-0">Send a goodbye message when members leave the group!</p>
+	</div>
+
+	<div class="bg-300 rounded-5 py-4 px-4 mt-2" role="button" onclick="window.location.href='/dashboard/<%= threadID %>/rankup'">
+		<div class="row justify-content-between">
+			<div class="col-auto">
+				<h4>🏆 Rankup</h4>
+			</div>
+			<div class="col-auto">
+				<label class="switch">
+					<div class="form-check form-switch">
+						<input class="form-check-input" id="sw-rankup" type="checkbox" <%= threadData.settings.sendRankupMessage ? 'checked' : '' %>/>
+						<span class="slider round"></span>
+					</div>
+				</label>
+			</div>
+		</div>
+		<p class="text-700 lead fs-1 ms-2 mb-0">Send notifications for rank upgrades!</p>
+	</div>
+
+	<div class="bg-300 rounded-5 py-4 px-4 mt-2" role="button" onclick="window.location.href='/dashboard/<%= threadID %>/custom-cmd'">
+		<div class="row justify-content-between">
+			<div class="col-auto">
+				<h4>⚙️ Custom command</h4>
+			</div>
+			<div class="col-auto">
+				<label class="switch">
+					<div class="form-check form-switch">
+						<input class="form-check-input" id="sw-customcmd" type="checkbox" <%= threadData.settings.customCommand ? 'checked' : '' %>/>
+						<span class="slider round"></span>
+					</div>
+				</label>
+			</div>
+		</div>
+		<p class="text-700 lead fs-1 ms-2 mb-0">Customize bot commands!</p>
+	</div>
+
+<div class="bg-300 rounded-5 py-4 px-4 mt-4" id="leave-group-btn" role="button" style="cursor:pointer;">
+  <div class="row justify-content-between">
+    <div class="col-auto">
+      <h4>😥 Leave Group</h4>
+    </div>
+  </div>
+  <p class="text-700 lead fs-1 ms-2 mb-0">Click here to make the bot leave this group.</p>
+</div>
+
+
+	<input type="hidden" name="threadID" value="<%= threadID %>">
+	<button type="submit" id="save" class="mt-2 btn btn-primary btn-block" <%=authConfigDashboard ? '' : 'disabled'%>>Save</button>
+
+</form>
+
+<script type="text/javascript">
+  (function() {
+    const btn = $("#save");
+    btn.on("click", function(e) {
+      e.preventDefault();
+      <% if (authConfigDashboard) { %>
+      $.ajax({
+        url: "/api/thread/setData/settings",
+        type: "POST",
+        data: {
+          threadID: "<%= threadID %>",
+          updateData: {
+            sendWelcomeMessage: $("#sw-welcome").is(":checked"),
+            sendLeaveMessage: $("#sw-leave").is(":checked"),
+            sendRankupMessage: $("#sw-rankup").is(":checked"),
+            customCommand: $("#sw-customcmd").is(":checked")
+          }
+        },
+        success: function(data) {
+          $.createToast({
+            title: "Success",
+            type: "success",
+            message: "Updated successfully!"
+          });
+        },
+        error: function(err) {
+          $.createToast({
+            title: "Error",
+            type: "error",
+            message: "An error occurred!"
+          });
+        }
+      });
+      <% } else { %>
+      $.createToast({
+        title: "Warning",
+        message: "[!] Only group admins or authorized members can edit the dashboard",
+        type: "warning",
+      });
+      <% } %>
+    });
+
+    // Prevent navigation when clicking on checkboxes
+    $("[type='checkbox']").on("click", function(e) {
+      e.stopPropagation();
+    });
+
+    // Leave Group button event
+    document.getElementById("leave-group-btn").addEventListener("click", function(e) {
+      e.preventDefault();
+      if (confirm("Are you sure you want the bot to leave this group?")) {
+        $.ajax({
+          url: "/api/thread/leave-group",
+          method: "POST",
+          data: { threadID: "<%= threadID %>" },
+          success: function(response) {
+            $.createToast({
+              title: "Success",
+              type: "success",
+              message: "The bot has left the group."
+            });
+            setTimeout(() => {
+              window.location.href = "/dashboard";
+            }, 1500);
+          },
+          error: function(err) {
+            $.createToast({
+              title: "Error",
+              type: "error",
+              message: "Failed to leave the group."
+            });
+          }
+        });
+      }
+    });
+  })();
+</script>
+<%~ includeFile("partials/footer.eta") %>
