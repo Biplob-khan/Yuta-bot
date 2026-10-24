@@ -1,116 +1,57 @@
-const { config } = global.GoatBot;
-const { writeFileSync } = require("fs-extra");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
 	config: {
 		name: "admin",
-		version: "1.6",
-		author: "NTKhang",
+		version: "2.1",
+		author: "Yuta / Biplob",
 		countDown: 5,
-		role: 2,
-		description: {
-			vi: "Thêm, xóa, sửa quyền admin",
-			en: "Add, remove, edit admin role"
-		},
-		category: "box chat",
-		guide: {
-			vi: '   {pn} [add | -a] <uid | @tag>: Thêm quyền admin cho người dùng'
-				+ '\n	  {pn} [remove | -r] <uid | @tag>: Xóa quyền admin của người dùng'
-				+ '\n	  {pn} [list | -l]: Liệt kê danh sách admin',
-			en: '   {pn} [add | -a] <uid | @tag>: Add admin role for user'
-				+ '\n	  {pn} [remove | -r] <uid | @tag>: Remove admin role of user'
-				+ '\n	  {pn} [list | -l]: List all admins'
-		}
+		role: 0,
+		shortDescription: "Display bot and admin/owner details",
+		longDescription: "Shows details, contacts, and profile info of the bot owner",
+		category: "info",
+		guide: "{p}admin"
 	},
 
-	langs: {
-		vi: {
-			added: "✅ | Đã thêm quyền admin cho %1 người dùng:\n%2",
-			alreadyAdmin: "\n⚠️ | %1 người dùng đã có quyền admin từ trước rồi:\n%2",
-			missingIdAdd: "⚠️ | Vui lòng nhập ID hoặc tag người dùng muốn thêm quyền admin",
-			removed: "✅ | Đã xóa quyền admin của %1 người dùng:\n%2",
-			notAdmin: "⚠️ | %1 người dùng không có quyền admin:\n%2",
-			missingIdRemove: "⚠️ | Vui lòng nhập ID hoặc tag người dùng muốn xóa quyền admin",
-			listAdmin: "👑 | Danh sách admin:\n%1"
-		},
-		en: {
-			added: "✅ | Added admin role for %1 users:\n%2",
-			alreadyAdmin: "\n⚠️ | %1 users already have admin role:\n%2",
-			missingIdAdd: "⚠️ | Please enter ID or tag user to add admin role",
-			removed: "✅ | Removed admin role of %1 users:\n%2",
-			notAdmin: "⚠️ | %1 users don't have admin role:\n%2",
-			missingIdRemove: "⚠️ | Please enter ID or tag user to remove admin role",
-			listAdmin: "👑 | List of admins:\n%1"
-		}
-	},
+	onStart: async ({ message }) => {
+		const botName = "𝗬𝘂𝗧𝗮 6𝗧9";
+		const ownerName = "𝗩𝗶𝗹𝗹𝗮𝗶𝗻 𝗕𝗶𝗽𝗹𝗼𝗯";
+		const district = "𝗦𝗶𝗿𝗮𝗷𝗴𝗮𝗻𝗷";
+		const adminUid = "𝗩𝗶𝗹𝗲𝗻𝗯𝗶𝗽𝗹𝗼𝗯007";
+		const bio = "Love is Name Sex Is game!💋💥";
 
-	onStart: async function ({ message, args, usersData, event, getLang }) {
-		switch (args[0]) {
-			case "add":
-			case "-a": {
-				if (args[1]) {
-					let uids = [];
-					if (Object.keys(event.mentions).length > 0)
-						uids = Object.keys(event.mentions);
-					else if (event.messageReply)
-						uids.push(event.messageReply.senderID);
-					else
-						uids = args.filter(arg => !isNaN(arg));
-					const notAdminIds = [];
-					const adminIds = [];
-					for (const uid of uids) {
-						if (config.adminBot.includes(uid))
-							adminIds.push(uid);
-						else
-							notAdminIds.push(uid);
-					}
+		// আপনার দেওয়া পিকচারের পাথ (একই ফোল্ডারে admin.jpg নামে রাখবেন)
+		const imagePath = path.join(__dirname, "admin.jpg");
 
-					config.adminBot.push(...notAdminIds);
-					const getNames = await Promise.all(uids.map(uid => usersData.getName(uid).then(name => ({ uid, name }))));
-					writeFileSync(global.client.dirConfig, JSON.stringify(config, null, 2));
-					return message.reply(
-						(notAdminIds.length > 0 ? getLang("added", notAdminIds.length, getNames.map(({ uid, name }) => `• ${name} (${uid})`).join("\n")) : "")
-						+ (adminIds.length > 0 ? getLang("alreadyAdmin", adminIds.length, adminIds.map(uid => `• ${uid}`).join("\n")) : "")
-					);
-				}
-				else
-					return message.reply(getLang("missingIdAdd"));
+		const adminMessage = 
+			`🤖 ──── [ BOT & OWNER INFO ] ──── 👑\n\n` +
+			`🤖 𝗕𝗼𝘁 𝗡𝗮𝗺𝗲 : ${botName}\n` +
+			`👑 𝗢𝘄𝗻𝗲𝗿 : ${ownerName}\n` +
+			`🏡 𝗗𝗶𝘀𝘁𝗿𝗶𝗰𝘁 : ${district}\n` +
+			`🆔 𝗔𝗱𝗺𝗶𝗻 𝘂𝗶𝗱 : ${adminUid}\n` +
+			`🌐 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸 : https://facebook.com/${adminUid}\n\n` +
+			`📝 𝗕𝗶𝗼 : "${bio}"\n\n` +
+			`✨ Contact the owner for any bot-related issues or inquiries!`;
+
+		try {
+			if (fs.existsSync(imagePath)) {
+				// ছবি থাকলে সেটি স্ট্রিম করে পাঠাবে
+				await message.send({
+					body: adminMessage,
+					attachment: fs.createReadStream(imagePath)
+				});
+			} else {
+				// ছবি না থাকলে ফেসবুক প্রোফাইল পিকচার চেষ্টা করবে
+				const avatarUrl = `https://graph.facebook.com/${adminUid}/picture?height=720&width=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+				await message.send({
+					body: adminMessage,
+					attachment: await global.utils.getStreamFromURL(avatarUrl)
+				});
 			}
-			case "remove":
-			case "-r": {
-				if (args[1]) {
-					let uids = [];
-					if (Object.keys(event.mentions).length > 0)
-						uids = Object.keys(event.mentions)[0];
-					else
-						uids = args.filter(arg => !isNaN(arg));
-					const notAdminIds = [];
-					const adminIds = [];
-					for (const uid of uids) {
-						if (config.adminBot.includes(uid))
-							adminIds.push(uid);
-						else
-							notAdminIds.push(uid);
-					}
-					for (const uid of adminIds)
-						config.adminBot.splice(config.adminBot.indexOf(uid), 1);
-					const getNames = await Promise.all(adminIds.map(uid => usersData.getName(uid).then(name => ({ uid, name }))));
-					writeFileSync(global.client.dirConfig, JSON.stringify(config, null, 2));
-					return message.reply(
-						(adminIds.length > 0 ? getLang("removed", adminIds.length, getNames.map(({ uid, name }) => `• ${name} (${uid})`).join("\n")) : "")
-						+ (notAdminIds.length > 0 ? getLang("notAdmin", notAdminIds.length, notAdminIds.map(uid => `• ${uid}`).join("\n")) : "")
-					);
-				}
-				else
-					return message.reply(getLang("missingIdRemove"));
-			}
-			case "list":
-			case "-l": {
-				const getNames = await Promise.all(config.adminBot.map(uid => usersData.getName(uid).then(name => ({ uid, name }))));
-				return message.reply(getLang("listAdmin", getNames.map(({ uid, name }) => `• ${name} (${uid})`).join("\n")));
-			}
-			default:
-				return message.SyntaxError();
+		} catch (err) {
+			console.error("Error sending admin info:", err);
+			message.send(adminMessage);
 		}
 	}
 };
