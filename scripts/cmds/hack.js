@@ -6,7 +6,7 @@ module.exports = {
 	config: {
 		name: "hack",
 		version: "1.0",
-		author: "Customized",
+		author: "biplob",
 		countDown: 5,
 		role: 0,
 		shortDescription: "Fun fake hack banner",
